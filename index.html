@@ -10,148 +10,114 @@
 <script src="https://code.jquery.com/jquery-1.10.2.js"></script>
 <link rel="stylesheet" href="Styles/main.css">
 <body>
-<div id="mainVisualization">
-<div id = "year_selector_input">
-<input type="range" name="year-selector" id="year-selector" value="2005" min="1900" max="2005" onchange="year_selector(this.value)" ondrag="console.log(this.value)">	
+<div id ="whole_page">
+<div id="mainVisualization"></div>
+<div id="writeup"></div>
 </div>
-</div>
+<input type="range" name="year-selector" id="year-selector" value="2005" min="1900" max="2005" onchange="year_selector(this.value,i_ind)" ondrag="console.log(this.value)">	
 
+<script src = "Data/Wars/America_War.js"></script>
+<script src = "Data/Wars/Australia_War.js"></script>
+<script src = "Data/Wars/Austria_War.js"></script>
+<script src = "Data/Wars/Brazil_War.js"></script>
+<script src = "Data/Wars/Britain_War.js"></script>
+
+<script src = "Data/Art/America_Artwork.js"></script>
+<script src = "Data/Art/Australia_Artwork.js"></script>
+<script src = "Data/Art/Austria_Artwork.js"></script>
+<script src = "Data/Art/Brazil_Artwork.js"></script>
+<script src = "Data/Art/Britain_Artwork.js"></script>
+
+<script src = "Scripts/circles.js"></script>	
+<script src = "Scripts/writeup.js"></script>
 <script>
 
+// Background of the visualization
+$('body').css('background-image','url(background.jpg)')
+$('body').css('margin',4)
+
+// Data 
+var countries = ['America','Australia','Austria','Brazil','Britain'];
+var wars = [America_War,Australia_War,Austria_War,Brazil_War,Britain_War];
+var arts = [America_Artwork,Australia_Artwork,Austria_Artwork,Brazil_Artwork,Britain_Artwork];
+
+// Initial Visualization Setup
 var mainVisualizationCanvas = d3.select("#mainVisualization").append("svg")
      .attr("id","main")
      .attr("xmlns","http://www.w3.org/2000/svg")
      .attr("viewBox","0 0 500 500")
      .attr("class", "mainsvg");
 
-$('#mainVisualization').css("width",window.innerHeight);
-$('#mainVisualization').css("height",window.innerHeight);
-$('#mainVisualization').css("top",0);
-$('#mainVisualization').css("left",0);
+var margin = 20
+$('#mainVisualization').css("width",window.innerHeight-(2*margin));
+$('#mainVisualization').css("height",window.innerHeight-(2*margin));
+$('#mainVisualization').css("top",margin);
+$('#mainVisualization').css("left",margin);
+mainVisualizationCanvas.append("g")
+								.attr("id","Year_Circles");
+mainVisualizationCanvas.append("g")
+								.attr("id","War_Fillers");
+mainVisualizationCanvas.append("g")
+								.attr("id","Art_Dots");
 
-mainVisualizationCanvas.append("svg")
-								.attr("id","Year_circles");
-mainVisualizationCanvas.append("svg")
-								.attr("id","War_Fillers")
+// Setting Initial Conditions
+var i_ind = 0; // Choosing the first country data
+year_selector(1970,i_ind);
+year_selector(1970,i_ind);
 
 
-function main_visualization(top,left,start_year,end_year,war_data)
+function war_draw_data_generator (war_data) 
 {
 
-var mainVisualizationDim = 500; 
-
-var start_index = index(start_year);
-var end_index = index(end_year);
-var big_increment = 8;
-
-// Boundary
-					var circles = d3.select('#Year_circles')
-						     .selectAll("circle")
-						     .data(war_data);
-								
-						circles.enter()
-								.append("circle");
-
-						circles.attr("cx",mainVisualizationDim/2)
-								.attr("cy",mainVisualizationDim/2)
-								.attr("id",function(d,i){return d.year})
-								.attr("r",function(d,i){
-									var radius = 0 ;
-									var small_increment = (mainVisualizationDim/2 - big_increment*10)/(count-10);
-									//Loop1
-									if(i <= start_index)
-										radius = small_increment*i;
-									//Loop2
-									else if (i > start_index && i<end_index)
-										radius = (small_increment*start_index)+big_increment*(i-start_index);
-									//Loop3
-									else
-										radius = (small_increment*start_index)+(big_increment*(end_index-start_index))+small_increment*(i-end_index);
-									return radius
-
-								})
-								.attr("fill","none")
-								.attr("stroke-width",0.01)
-								.attr("stroke","black");
-
-						circles.exit().remove("circle")
-
-// War Fill
-				var circles_fill = d3.select('#War_Fillers')
-									.selectAll("circle")
-								    .data(war_data);
-								
-					circles_fill.enter()
-								.append("circle")
-								
-					circles_fill.attr("cx",mainVisualizationDim/2)
-								.attr("cy",mainVisualizationDim/2)
-								.attr("id",function(d,i){return d.year+"_filler"})
-								.attr("r",function(d,i){
-									var radius = 0 ;
-									var small_increment = (mainVisualizationDim/2 - big_increment*10)/(count-10) ;
-									//Loop1
-									if(i < start_index)
-										radius = small_increment*i + (small_increment/2);
-									//Loop2
-									else if (i >= start_index && i<end_index)
-										radius = (small_increment*start_index)+big_increment*(i-start_index) + (big_increment/2);
-									//Loop3
-									else
-										radius = (small_increment*start_index)+(big_increment*(end_index-start_index))+small_increment*(i-end_index) + (small_increment/2);
-									return radius
-
-								})
-								.attr("fill","none")
-								.attr("stroke-width",function(d,i){
-									var width = 0 ;
-									var small_increment = (mainVisualizationDim/2 - big_increment*10)/(count-10);
-									//Loop1
-									if(i < start_index)
-										width = small_increment;
-									//Loop2
-									else if (i >= start_index && i<end_index)
-										width = big_increment;
-									//Loop3
-									else
-										width = small_increment;
-									return width;
-
-								})
-								.attr("opacity",function(d,i){
-									return d.wars/10;
-								})
-								.attr("stroke","red");
-
-					circles_fill.exit().remove('circle')
-
-function index(year){ return year-1900;}
-
-}
-</script>	
-
-<script>
-
-$('body').css('background-image','url(background.jpg)')
-$('body').css('margin',4)
-
-
-var war_data_1 = [];
-var count = 0 ;
-for ( var a = 1900 ; a < 2015 ; a++)
-{
-	var num_of_wars = Math.floor(Math.random()*10);
-	war_data_1.push({"year":a,"wars":num_of_wars}); // add the opacity parameter here
+	var data = [];
+	var count = 0;
+	for ( var a = 1900 ; a <= 2016 ; a++)
+	{
+	data.push({"year":a,"wars":0}); 
 	count = count+1;
+	}
+
+	var war_l = war_data.length;
+	for ( var a = 0 ; a <war_l;a++)
+	{
+		var s_year = parseInt(war_data[a].start_year);
+		var e_year = parseInt(war_data[a].end_year);
+		for( var y = s_year ; y <=e_year ;y++)
+		{
+			var index = y - 1900 ;
+			data[index].wars += 1;
+		}
+	}
+	return data ;
 }
 
-main_visualization(0,0,2005,2015,war_data_1);
-
-function year_selector(year) 
+function art_draw_data_generator (art_data)
 {
+	var nest_data = d3.nest()
+						.key(function(d){ return d.artist_name})
+						.key(function(d){ return d.year})
+						.entries(art_data);
+    return nest_data;
+}
+
+
+// Actual Drawing Functions
+function year_selector(year,index) 
+{
+	$("#Art_Dots").remove();
+	mainVisualizationCanvas.append("g")
+						   .attr("id","Art_Dots");
+
+	var current_country = countries[index];
+	var current_war = wars[index];
+	var current_art = arts[index];
+
+	var current_drawing_data = war_draw_data_generator(current_war);
+	var current_art_drawing_data = art_draw_data_generator(current_art);
+
 	var start_year = parseInt(year);
 	var end_year = start_year+10;
-	main_visualization(0,0,start_year,end_year,war_data_1);
+	main_visualization(start_year,end_year,current_drawing_data,current_art_drawing_data);
 }
 
 

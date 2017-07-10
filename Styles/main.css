@@ -1,6 +1,23 @@
+#whole_page
+{
+    position:absolute;
+    margin :0 auto;
+    width : 100%;
+    height: 100%;
+}
+
 #mainVisualization
 {
 	position:absolute;
+}
+
+#writeup
+{
+    position:absolute;
+}
+.art_circles
+{
+    position:absolute;
 }
 
 input[type=range]{
