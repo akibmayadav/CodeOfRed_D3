@@ -2,15 +2,17 @@ function main_visualization(start_year,end_year,war_data,art_data)
 {
 // Main Canvas for the visualization
 
-var count = 2017-1900;
+var count = end_year-start_year;
 
 var mainVisualizationDim = 500; 
 
-var start_index = index(start_year);
-var end_index = index(end_year);
 var big_increment = 8;
 
 // Boundary
+			var tooltip = d3.select("body").append("div")
+    					 .attr("class", "tooltip")
+   						 .style("opacity", 0);
+
 			var circles = d3.select('#Year_Circles')
 						     .selectAll("circle")
 						     .data(war_data);
@@ -23,17 +25,9 @@ var big_increment = 8;
 								.attr("id",function(d,i){return d.year})
 								.attr("r",function(d,i){
 									var radius = 0 ;
-									var small_increment = (mainVisualizationDim/2 - big_increment*10)/(count-10);
-									//Loop1
-									if(i <= start_index)
-										radius = small_increment*i;
-									//Loop2
-									else if (i > start_index && i<end_index)
-										radius = (small_increment*start_index)+big_increment*(i-start_index);
-									//Loop3
-									else
-										radius = (small_increment*start_index)+(big_increment*(end_index-start_index))+small_increment*(i-end_index);
-									return radius
+									var increment = mainVisualizationDim/(2*count);
+									radius = increment*(i+1);
+									return radius;
 
 								})
 								.attr("fill","none")
@@ -41,9 +35,10 @@ var big_increment = 8;
 								.attr("opacity",0.5)
 								.attr("stroke","black");
 
-						circles.exit().remove("circle")
+				circles.exit().remove("circle")
 
 // War Fill
+
 				var circles_fill = d3.select("#War_Fillers")
 									.selectAll("circle")
 								    .data(war_data);
@@ -56,41 +51,24 @@ var big_increment = 8;
 								.attr("id",function(d,i){return d.year+"_filler"})
 								.attr("r",function(d,i){
 									var radius = 0 ;
-									var small_increment = (mainVisualizationDim/2 - big_increment*10)/(count-10) ;
-									//Loop1
-									if(i < start_index)
-										radius = small_increment*i + (small_increment/2);
-									//Loop2
-									else if (i >= start_index && i<end_index)
-										radius = (small_increment*start_index)+big_increment*(i-start_index) + (big_increment/2);
-									//Loop3
-									else
-										radius = (small_increment*start_index)+(big_increment*(end_index-start_index))+small_increment*(i-end_index) + (small_increment/2);
-									return radius
+									var increment = mainVisualizationDim/(2*count);
+									radius = increment*i + (increment/2);
+									return radius;
 
 								})
 								.attr("fill","none")
 								.attr("stroke-width",function(d,i){
-									var width = 0 ;
-									var small_increment = (mainVisualizationDim/2 - big_increment*10)/(count-10);
-									//Loop1
-									if(i < start_index)
-										width = small_increment;
-									//Loop2
-									else if (i >= start_index && i<end_index)
-										width = big_increment;
-									//Loop3
-									else
-										width = small_increment;
-									return width;
+									var increment = mainVisualizationDim/(2*count);
+									return increment;
 
 								})
 								.attr("opacity",function(d,i){
-									return d.wars/5;
+									return d.wars/5
+
 								})
 								.attr("stroke","#b2332a");
 
-					circles_fill.exit().remove('circle')
+				circles_fill.exit().remove('circle')
 
 // Art Dots 
 
@@ -114,86 +92,80 @@ var big_increment = 8;
 				// Internal Points
 				var small_circle_radius = 0.3;
 				var big_circle_radius = 0.6;
-				// g for every year for every artist
-				var art_dots_2 = art_dots_1.selectAll("g")
+				// circles for every active year, every artist
+				var art_dots_2 = art_dots_1.selectAll("circle")
 												.data(function(d,i){
-													console.log(d);
-													return d.values})
+													var circle_data = [];
+													// console.log(d.values);
+													for ( var c = 0; c < d.values.length ;c++)
+													{
+														var year = d.values[c].key ;
+														if ( year>= start_year && year<end_year)
+														{
+															circle_data.push(d.values[c])
+														}
+													}
+													return circle_data})
 												.enter()
-												.append("g")
-												.attr("id",function(d,i){return d.key})
+												.append("circle")
+												.attr("id",function(d,i){
+													return d.key})
 												.attr("transform",function(d,i){
 													var year = parseInt(d.key);
 													var x = 0; 
 													var y = 0;
-													var ind = index(year);
-													var small_increment = (mainVisualizationDim/2 - big_increment*10)/(count-10);
-													//Loop1
-													if(year < start_year)
-													x = small_increment*ind; 
-													//Loop2
-													else if (year >= start_year && year<end_year)
-													x = (small_increment*start_index)+big_increment*(ind-start_index);
-													//Loop3
-													else
-													x = (small_increment*start_index)+(big_increment*(end_index-start_index))+small_increment*(ind-end_index);
-													
-													var final = "translate(" + x +"," +y +")" ;
+													var ind = year-start_year;
+													var radius = 0 ;
+													var increment = mainVisualizationDim/(2*count);
+													radius = increment*ind + (increment/2);	
+													var final = "translate(" + radius +"," +y +")" ;
 													return final;
-												})
-
-					// circles representing indiviual artwork for every year, every artist							
-							art_dots_2.selectAll("circle")
-												.data(function(d,i){return d.values})
-												.enter()
-												.append("circle")
-												.attr("id",function(d,i){return d.art_name+d.year})
+												})					
 												.attr("cx",function(d,i){
-													var art_name = d.art_name;
-													var year = parseInt(d.year);
-													var rad = 0;
-													if(year < start_year)
-													rad = small_circle_radius
-													//Loop2
-													else if (year >= start_year && year<end_year)
-													rad = big_circle_radius
-													//Loop3
-													else
-													rad = small_circle_radius
-													var x_pos = 2*i*rad +rad;
-													return x_pos ;
+													var increment = mainVisualizationDim/(2*count);
+													return 0;
 												})
 												.attr("cy",function(d,i){
-													var art_name = d.art_name;
-													var year = parseInt(d.year);
-													var rad = 0;
-													if(year < start_year)
-													rad = small_circle_radius
-													//Loop2
-													else if (year >= start_year && year<end_year)
-													rad = big_circle_radius
-													//Loop3
-													else
-													rad = small_circle_radius
-													var y_pos = rad;
-													return y_pos ;
+													var increment = mainVisualizationDim/(2*count);
+													return 0;
 												})
 												.attr("r",function(d,i){
-													var year = parseInt(d.year);
-													var rad;
-													if(year < start_year)
-													rad = small_circle_radius
-													//Loop2
-													else if (year >= start_year && year<end_year)
-													rad = big_circle_radius
-													//Loop3
-													else
-													rad = small_circle_radius
-													return rad;
+													var increment = mainVisualizationDim/(2*count);
+													return increment/4;
 												})
-												.attr("fill","black");
-												console.log("End Here")
-									
-function index(year){ return year-1900;}
+												.attr("fill","black")
+												.on("mouseover",mouseover_function)
+												.on("mouseout",mouseout_function)
+												.attr("opacity",function(d,i){
+													var num = d.values.length;
+													return num/7;
+												});
+
+
+
+			function mouseover_function(d)
+			{
+				tooltip.transition()
+         			.duration(100)
+         			.style("opacity", .9);
+
+				var artist_name_line = "<span id='ArtistName'>"+d.values[0].artist_name + " ( "+d.key+" ) " +"</span>";
+				var l = d.values.length;
+				var arts = "\n";
+				for ( var a = 0 ; a<l;a++) {
+					arts = arts + d.values[a].art_name + "<br>";
+				}
+
+				tooltip.html(artist_name_line+"<br>"+arts)
+         		.style("left", (d3.event.pageX) + "px")
+         		.style("top", (d3.event.pageY - 28) + "px");
+			}
+
+			function mouseout_function(d)
+			{
+				tooltip.transition()
+         			.duration(100)
+         			.style("opacity", 0);
+			}
 
 }
